@@ -2,8 +2,8 @@ local skynet = require "skynet"
 local s = require "service"
 local runconfig = require "runconfig"
 local socket = require "skynet.socket"
-conns = {}
-players = {}
+local conns = {}
+local players = {}
 
 function conn()
 	local m = {
@@ -39,7 +39,7 @@ local str_unpack = function(msgstr)
 end
 
 local str_pack = function(cmd, msgstr)
-	return table.concat(msg, ",") .. "\r\n"
+	return table.concat(msgstr, ",") .. "\r\n"
 end
 
 local process_msg = function(fd, msgstr)
@@ -77,12 +77,12 @@ end
 
 
 s.resp.send_by_fd = function(sourse, fd, msg)
-	if not conns[fd] then
+	if not conns[fd] or msg == nil then
 		return
 	end
 	skynet.error("waiting pack msg")
 	local buff = str_pack(msg[1], msg)
-	skynet.error("send" .. fd .. "[" .. msg .. "] {" .. msg[1] .. "] {" .. table.concat(msg, ",") .. "}")
+	skynet.error("send" .. fd .. "[" .. msg[1] .. "] {" .. table.concat(msg, ",") .. "}")
 	socket.write(fd, buff)
 end
 
@@ -105,14 +105,14 @@ s.resp.sure_agent = function(sourse, fd, playerid, agent)
 		skynet.call("agentmgr", "lua", "reqkick", playerid, "未完成登陆即下线")
 		return false
 	end
-
+	print("preparing")
 	conn.playerid = playerid
 
 	local gplayer = gateplayer()
 	gplayer.playerid = playerid
 	gplayer.agent = agent
 	gplayer.conn = conn
-	playerid[playerid] = gplayer
+	players[playerid] = gplayer
 
 	return true
 end
@@ -127,7 +127,7 @@ local disconnect = function(fd)
 	if not playerid then
 		return
 	else
-		playerid[playerid] = nil
+		players[playerid] = nil
 		local reason = "断线"
 		skynet.send("agentmgr", "lua", "reqkick", playerid, reason)
 	end
@@ -145,7 +145,7 @@ s.resp.kick = function(sourse, playerid)
 	if not c then
 		return
 	end
-	conn[c.fd] = nil
+	conns[c.fd] = nil
 	disconnect(c.fd)
 	socket.close(c.fd)
 end

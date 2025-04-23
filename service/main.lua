@@ -22,8 +22,11 @@ skynet.start(function()
 	end
 
 	local anode = runconfig.agentmgr.node
+
 	if mynode == anode then
+		print("c")
 		local srv = skynet.newservice("agentmgr", "agentmgr", 0)
+		print("111")
 		skynet.name("agentmgr", srv)
 	else
 		local proxy = cluster.proxy(anode, "agentmgr")

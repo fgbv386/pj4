@@ -20,6 +20,10 @@ function mgrplayer()
 	return m
 end
 
+s.resp.test = function(source)
+	skynet.error("agentmgr recv")
+end
+
 s.resp.reqlogin = function(source, playerid, node, gate)
 	local mplayer = players[playerid]
 
@@ -30,13 +34,14 @@ s.resp.reqlogin = function(source, playerid, node, gate)
 	if mplayer then
 		local pnode = mplayer.node
 		local pagent = mplayer.agent
-		local gate = mplayer.gate
+		local pgate = mplayer.gate
 		mplayer.status = STATUS.LOGOUT
 		s.call(pnode, pagent, "kick")
 		s.send(pnode, pagent, "exit")
 		s.send(pnode, pgate, "send", playerid, { "kick", "顶替下线" })
 		s.call(pnode, pgate, "kick", playerid)
 	end
+
 
 	local player = mgrplayer()
 	player.playerid = playerid
@@ -45,6 +50,7 @@ s.resp.reqlogin = function(source, playerid, node, gate)
 	player.agent = nil
 	player.status = STATUS.LOGIN
 	players[playerid] = player
+	skynet.error("[amgr] waiting nodemgr")
 	local agent = s.call(node, "nodemgr", "newservice", "agent", "agent", playerid)
 	player.agent = agent
 	player.status = STATUS.GAME
@@ -73,3 +79,5 @@ s.resp.reqkick = function(source, playerid, reason)
 
 	return true
 end
+
+s.start(...)

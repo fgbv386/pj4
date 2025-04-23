@@ -1,6 +1,8 @@
 local skynet = require "skynet"
 local s = require "service"
 
+s.client = {}
+s.gate = nil
 s.resp.client = function(source, cmd, msg)
 	s.gate = source
 	if s.client[cmd] then
@@ -22,7 +24,7 @@ s.init = function()
 end
 
 s.resp.kick = function(source)
-	s.leave_scene()
+	--s.leave_scene()
 
 	skynet.sleep(200)
 end
@@ -35,3 +37,5 @@ s.client.work = function(msg)
 	s.data.coin = s.data.coin + 1
 	return { "work", s.data.coin }
 end
+
+s.start(...)

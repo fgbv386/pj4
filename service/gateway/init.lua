@@ -39,7 +39,7 @@ local str_unpack = function(msgstr)
 end
 
 local str_pack = function(cmd, msgstr)
-	return table.concat(msgstr, ",") .. "\r\n"
+	return table.concat(msgstr, ",") .. "$"
 end
 
 local process_msg = function(fd, msgstr)
@@ -64,7 +64,7 @@ end
 
 local process_buff = function(fd, readbuff)
 	while true do
-		local msgstr, rest = string.match(readbuff, "(.-)\r\n(.*)")
+		local msgstr, rest = string.match(readbuff, "(.-)$(.*)")
 		if msgstr then
 			readbuff = rest
 			process_msg(fd, msgstr)
@@ -156,6 +156,7 @@ local recv_loop = function(fd)
 	local readbuff = ""
 	while true do
 		local recvstr = socket.read(fd)
+		print(recvstr)
 		if recvstr then
 			readbuff = readbuff .. recvstr
 			readbuff = process_buff(fd, readbuff)
